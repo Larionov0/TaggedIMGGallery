@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Card List</title>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
+</head>
+<body>
+  <div class="cards">
+    {% for card in cards %}
+    <div class="card">
+      <img src="{{ card.image.url }}" alt="{{ card.title }}">
+<!--      <p>{{ card.title }}</p>-->
+      <p>{{ card.get_all_tags_string }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div>
+    <span>Page {{ cards.number }} of {{ cards.paginator.num_pages }}</span>
+
+    {% if cards.has_previous %}
+      <a href="?page={{ cards.previous_page_number }}">previous</a>
+    {% endif %}
+
+    {% if cards.has_next %}
+      <a href="?page={{ cards.next_page_number }}">next</a>
+    {% endif %}
+  </div>
+</body>
+</html>

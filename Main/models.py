@@ -33,11 +33,12 @@ class Card(models.Model):
     """
     Or 1 image or 1 video
     """
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, blank=True)
     description = models.CharField(max_length=1000, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     image = models.ImageField(upload_to='images/', blank=True)
     video = models.FileField(upload_to='videos/', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
@@ -52,4 +53,23 @@ class Card(models.Model):
 
         self.tags.add(*tags_to_add)
 
+    def get_all_tags_string(self):
+        return ', '.join([tag.name for tag in self.tags.all()])
 
+
+class ImagePart(models.Model):
+    """
+    A part of an image, like a face or a car.
+    """
+    card = models.ForeignKey(Card, on_delete=models.CASCADE)
+    start_x = models.FloatField()  # %
+    start_y = models.FloatField()  # %
+    width = models.FloatField()  # %
+    height = models.FloatField()  # %
+    scale = models.FloatField()  # %
+    tags = models.ManyToManyField(Tag, blank=True)
+    name = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
