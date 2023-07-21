@@ -19,7 +19,8 @@ def card_detail(request, card_id):
                   {
                       'card': card,
                       'tags': [tag.name for tag in card.tags.all()],
-                      'all_tags': [tag.name for tag in Tag.objects.all()]
+                      'all_tags': [tag.name for tag in Tag.objects.all()],
+                      'image_parts': [part.to_dict() for part in card.imagepart_set.all()]
                   })
 
 
@@ -31,8 +32,9 @@ def save_card(request):
         description = data.get('description', None)
         tags = data.get('tags', None)
         image_data = data.get('image', None)
+        image_parts = data.get('image_parts', None)
 
-        logging.info(f'card_id: {card_id}; title: {title}; description: {description}; tags: {tags}')
+        logging.info(f'card_id: {card_id}; title: {title}; description: {description}; tags: {tags} image_parts: {image_parts}')
 
         if card_id:
             card = get_object_or_404(Card, id=card_id)
@@ -58,6 +60,40 @@ def save_card(request):
         tags = Tag.objects.filter(name__in=tags)
         card.tags.clear()
         card.add_tags_and_parents(tags)
+
+        # Image parts tags validation
+        for image_part_dct in image_parts:
+            image_part_tags = image_part_dct['tags']
+            image_part_tags = [tag.strip() for tag in image_part_tags]
+            logging.info(f'image_part_tags: {image_part_tags}')
+
+            for tag_got in image_part_tags:
+                tag = Tag.objects.filter(name=tag_got).first()
+                logging.info(f'tag: {tag_got} {tag}')
+                if not tag:
+                    return JsonResponse({"message": f"Tag '{tag_got}' does not exist."}, status=400)
+
+        # Delete old image parts
+        card.imagepart_set.all().delete()
+
+        added_parts = 0
+        for image_part_dct in image_parts:
+            image_part = ImagePart()
+            image_part.card = card
+            image_part.start_x = image_part_dct['start_x']
+            image_part.start_y = image_part_dct['start_y']
+            image_part.width = image_part_dct['width']
+            image_part.height = image_part_dct['height']
+
+            image_part.save()
+
+            image_part_tags = image_part_dct['tags']
+            image_part_tags = [tag.strip() for tag in image_part_tags]
+            image_part_tags = Tag.objects.filter(name__in=image_part_tags)
+            image_part.tags.add(*image_part_tags)
+            added_parts += 1
+
+        logging.info(f'added_parts: {added_parts}')
 
         logging.info(f'card_id: {card_id}; title: {title}; description: {description}; tags: {tags}; image: {card.image.url}')
         return JsonResponse({"message": "Card saved successfully."}, status=200)

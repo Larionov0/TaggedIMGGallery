@@ -66,10 +66,22 @@ class ImagePart(models.Model):
     start_y = models.FloatField()  # %
     width = models.FloatField()  # %
     height = models.FloatField()  # %
-    scale = models.FloatField()  # %
+    scale = models.FloatField(default=1)  # %
     tags = models.ManyToManyField(Tag, blank=True)
     name = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'start_x': self.start_x,
+            'start_y': self.start_y,
+            'width': self.width,
+            'height': self.height,
+            'scale': self.scale,
+            'tags': [tag.name for tag in self.tags.all()],
+            'name': self.name,
+        }

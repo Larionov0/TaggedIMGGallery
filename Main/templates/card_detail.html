@@ -3,15 +3,30 @@
 <head>
   <title>Card Detail</title>
   {% load static %}
-  <link rel="stylesheet" type="text/css" href="{% static 'card_detail.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'CSS/card_detail.css' %}">
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 </head>
 <body>
   <div class="card-detail">
-    <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
-    <!-- The input field is hidden, but it's triggered when the image is clicked -->
+    <div id="image_and_parts_div">
+      <div id="image_div">
+        <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
+      </div>
+      <div id="image_parts_div">
+        <div class="image_part_place">
+          <canvas id="canvas1"></canvas>
+        </div>
+        <div class="image_part_place">
+          <canvas id="canvas2"></canvas>
+        </div>
+        <div class="image_part_place">
+          <canvas id="canvas3"></canvas>
+        </div>
+      </div>
+    </div>
+    
     <input type="file" id="fileInput" accept="image/*"/>
 
     <p class="title">{{ card.title }}</p>
@@ -26,14 +41,25 @@
   </div>
 
 </body>
-
+<script src="{% static 'JS/images.js' %}"></script>
 <script>  // global variables
   var card_id = {{ card.id }};
   var csrftoken = '{{ csrf_token }}';
   var allTags = {{ all_tags|safe }};
   var currentTags = {{ tags|safe }};
+  var imageParts = {{ image_parts|safe }};  // [{start_x:..,start_y:..,width:..,height:..,tags:[...]}, ...]
   var new_file_selected = false;
   var fileInput = document.getElementById('fileInput');
+
+  var activeCanvas = null;
+  var activeCanvasNumber = null;
+
+  var canvas1_position = {x_pct: 60, y_px: 0};
+  var canvas2_position = {x_pct: 60, y_px: 240};
+  var canvas3_position = {x_pct: 60, y_px: 480};
+
+  // config
+  var imagePartsMode = true
 </script>
 
 <script>  // image upload
@@ -81,10 +107,11 @@
             description: 'description',
             tags: tagNames,
             image: image,
+            image_parts: imageParts
           })
       })
       .then(response => response.json())
-      .then(data => {console.log(data) ; temporaryAlert("Saved", 1000);})
+      .then(data => {console.log(data) ; temporaryAlert(data["message"], 1000);})
       .catch(error => console.error(error));
   }
 
@@ -147,14 +174,32 @@
       }
   }
   else if (! event.ctrlKey && ! event.shiftKey){  
-    var inputField = document.getElementById("tags");
-    inputField.focus();
+    if (activeCanvas === null){
+      var inputField = document.getElementById("tags");
+      inputField.focus();
+    } else {
+      if (event.key.length > 1 && event.key!='Backspace') return;  // ignore special keys (like arrows)
+
+      if (event.key == 'Backspace'){
+        activeCanvas.title = activeCanvas.title.slice(0, -1);
+      } else {
+        activeCanvas.title = activeCanvas.title + event.key;
+      }
+
+      imageParts[activeCanvasNumber-1].tags = activeCanvas.title.split(', ');
+      temporaryAlert(activeCanvas.title, 100);
+    }
+    
   } else if (event.keyCode === 73 && event.shiftKey){  // I  // works for Firefox
     event.preventDefault();
     fileInput.focus()
     fileInput.click();
   }  
 });
+</script>
+
+<script>
+  imageElement.ondragstart = function(e) { return false; e.preventDefault()};
 </script>
 
 <script>  // help functions
@@ -167,5 +212,13 @@
       }, duration);
       document.body.appendChild(el);
   }
+</script>
+
+
+<script>  // image parts
+  drawImageParts()
+  create_canvas_animation('canvas1', 15, 200, canvas1_position.x_pct, canvas1_position.y_px)
+  create_canvas_animation('canvas2', 0, 100, canvas2_position.x_pct, canvas2_position.y_px)
+  create_canvas_animation('canvas3', 10, 150, canvas3_position.x_pct, canvas3_position.y_px)
 </script>
 </html>
