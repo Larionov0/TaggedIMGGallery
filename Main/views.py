@@ -24,6 +24,22 @@ def card_detail(request, card_id):
                   })
 
 
+def create_card(request):
+    return render(request, 'card_detail.html',
+                  {
+                      'card': None,
+                      'tags': [],
+                      'all_tags': [tag.name for tag in Tag.objects.all()],
+                      'image_parts': []
+                  })
+
+
+def delete_card(request, card_id):
+    card = get_object_or_404(Card, id=card_id)
+    card.delete()
+    return redirect('card_list')
+
+
 def save_card(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -96,7 +112,7 @@ def save_card(request):
         logging.info(f'added_parts: {added_parts}')
 
         logging.info(f'card_id: {card_id}; title: {title}; description: {description}; tags: {tags}; image: {card.image.url}')
-        return JsonResponse({"message": "Card saved successfully."}, status=200)
+        return JsonResponse({"saved": True, "message": "Card saved successfully.", "card_id": card.id}, status=200)
 
 
 def card_list(request):

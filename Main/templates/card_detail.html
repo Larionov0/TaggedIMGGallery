@@ -43,7 +43,7 @@
 </body>
 <script src="{% static 'JS/images.js' %}"></script>
 <script>  // global variables
-  var card_id = {{ card.id }};
+  var card_id = '{{ card.id }}';
   var csrftoken = '{{ csrf_token }}';
   var allTags = {{ all_tags|safe }};
   var currentTags = {{ tags|safe }};
@@ -111,7 +111,13 @@
           })
       })
       .then(response => response.json())
-      .then(data => {console.log(data) ; temporaryAlert(data["message"], 1000);})
+      .then(data => {
+        console.log(data) ; 
+        temporaryAlert(data["message"], 1000);
+        if (data['saved']){
+          card_id = data['card_id'];
+        }
+    })
       .catch(error => console.error(error));
   }
 
@@ -171,6 +177,28 @@
       else if (event.keyCode === 27){  // 'Esc'
         event.preventDefault();
         window.location.href = "/cards/";
+      } 
+      // next line is CTRL + Delete
+      else if (event.keyCode === 46){  // 'Delete'
+        event.preventDefault();
+
+        // confirm delete
+        var result = confirm("Want to delete?");
+        if (!result) return;
+
+        fetch(`/cards/${card_id}/delete/`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': csrftoken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }).then(response => {
+        if (!response.ok) {
+          throw new Error('HTTP error, status = ' + response.status);
+        }
+        window.location.href = "/cards/";
+      }).catch(error => temporaryAlert(error, 4000));
       }
   }
   else if (! event.ctrlKey && ! event.shiftKey){  

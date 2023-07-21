@@ -6,13 +6,15 @@
   <link rel="stylesheet" type="text/css" href="{% static 'CSS/styles.css' %}">
 </head>
 <body>
+  <h1>Cards</h1>
+  <a href="/cards/create/"><button>Create Card</button></a>
   <div class="cards">
     {% for card in cards %}
     <div class="card">
         <a href="{% url 'card_detail' card.id %}">
           <img src="{{ card.image.url }}" alt="{{ card.title }}">
         </a>
-      <p>{{ card.get_all_tags_string }}</p>
+      <!-- <p>{{ card.get_all_tags_string }}</p> -->
     </div>
     {% endfor %}
   </div>
