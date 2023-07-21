@@ -9,4 +9,5 @@ urlpatterns = [
     path('cards/save/', save_card, name='save_card'),
     path('cards/create/', create_card, name='create_card'),
     path('cards/<int:card_id>/delete/', delete_card, name='delete_card'),
+    path('cards/<int:card_id>/create/', create_card_from_card, name='create_card_from_card'),
 ]

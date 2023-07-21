@@ -34,6 +34,17 @@ def create_card(request):
                   })
 
 
+def create_card_from_card(request, card_id):
+    card = get_object_or_404(Card, id=card_id)
+    return render(request, 'card_detail.html',
+                  {
+                      'card': None,
+                      'tags': [tag.name for tag in card.tags.all()],
+                      'all_tags': [tag.name for tag in Tag.objects.all()],
+                      'image_parts': []
+                  })
+
+
 def delete_card(request, card_id):
     card = get_object_or_404(Card, id=card_id)
     card.delete()
@@ -117,11 +128,11 @@ def save_card(request):
 
 def card_list(request):
     tags = request.GET.get('tags', None)
-    cards_amount = request.GET.get('cards_amount', 10)  # Default is 10 cards per page
+    cards_amount = request.GET.get('cards_amount', 10)  # Default
     page = request.GET.get('page', 1)  # Default is first page
 
     # Get all cards
-    cards = Card.objects.all()
+    cards = Card.objects.all().order_by('-created_at')
 
     # Filter cards by tags if tags are provided
     if tags:
@@ -132,5 +143,7 @@ def card_list(request):
     paginator = Paginator(cards, cards_amount)
     cards = paginator.get_page(page)
 
-    return render(request, 'card_list.html', {'cards': cards})
+    # Page numbers range
+    page_range = list(paginator.page_range)[max(0, cards.number - 3):min(cards.paginator.num_pages, cards.number + 2)]
 
+    return render(request, 'card_list.html', {'cards': cards, 'page_range': page_range})

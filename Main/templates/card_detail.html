@@ -37,7 +37,8 @@
     <div id="selected-tags">
       <!-- Here will be added selected tags -->
     </div>
-    <input type="button" value="Save">
+    <input type="button" value="Save" id="saveButton">
+    <input type="button" value="Save And Go Next" id="saveAndGoNextButton">
   </div>
 
 </body>
@@ -83,9 +84,10 @@
     });
 </script>
 <script>  // save button
-  let saveButton = document.querySelector('input[type="button"]');
+  let saveButton = document.getElementById('saveButton');
+  let saveAndGoNextButton = document.getElementById('saveAndGoNextButton');
 
-  function save() {
+  function save(callback=()=>{}) {
       let tags = document.querySelectorAll('.tag');
       let tagNames = [];
       for (var i = 0; i < tags.length; i++) {
@@ -116,12 +118,19 @@
         temporaryAlert(data["message"], 1000);
         if (data['saved']){
           card_id = data['card_id'];
+          callback()
         }
     })
       .catch(error => console.error(error));
   }
 
   saveButton.addEventListener('click', save);
+  saveAndGoNextButton.addEventListener('click', function() {
+    save(function() {
+      window.location.href = `/cards/${card_id}/create/`;
+    });
+  });
+
 </script>
 
 <script>  // autocomplete

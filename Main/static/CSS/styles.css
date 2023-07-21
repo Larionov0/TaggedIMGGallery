@@ -47,3 +47,19 @@ a:focus {
     color: #23527c;
     text-decoration: underline;
 }
+
+h1 {
+    font-size: 3em;
+    margin: 0 0 0.5em;
+    text-align: center;
+}
+
+#create_card_a button {
+    /* margin: 0 0 0.5em; */
+    padding: 0.5em;
+    background-color: #eee;
+    border-radius: 1em;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
