@@ -9,8 +9,9 @@
   <div class="cards">
     {% for card in cards %}
     <div class="card">
-      <img src="{{ card.image.url }}" alt="{{ card.title }}">
-<!--      <p>{{ card.title }}</p>-->
+        <a href="{% url 'card_detail' card.id %}">
+          <img src="{{ card.image.url }}" alt="{{ card.title }}">
+        </a>
       <p>{{ card.get_all_tags_string }}</p>
     </div>
     {% endfor %}

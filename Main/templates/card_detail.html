@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Card Detail</title>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'card_detail.css' %}">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+<body>
+  <div class="card-detail">
+    <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
+    <!-- The input field is hidden, but it's triggered when the image is clicked -->
+    <input type="file" id="fileInput" style="display: none;" accept="image/*"/>
+
+    <p class="title">{{ card.title }}</p>
+    <div>
+      <label for="tags">Tags: </label>
+      <input id="tags">
+    </div>
+    <div id="selected-tags">
+      <!-- Here will be added selected tags -->
+    </div>
+    <input type="button" value="Save">
+  </div>
+
+</body>
+
+<script>
+  var card_id = {{ card.id }};
+  var csrftoken = '{{ csrf_token }}';
+  var allTags = {{ all_tags|safe }};
+  var currentTags = {{ tags|safe }};
+</script>
+
+<script>
+    var imageElement = document.getElementById('clickableImage');
+    const fileInput = document.getElementById('fileInput');
+
+    // var selectedFile;
+    var new_file_selected = false;
+
+    // When the image is clicked, trigger the file input click event
+    imageElement.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // When a file is selected, read it and update the image
+    fileInput.addEventListener('change', (event) => {
+        let selectedFile = event.target.files[0];
+
+        if (selectedFile) {
+            new_file_selected = true;
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                imageElement.src = event.target.result;
+            };
+
+            reader.readAsDataURL(selectedFile);
+        }
+    });
+</script>
+<script>
+  let saveButton = document.querySelector('input[type="button"]');
+  saveButton.addEventListener('click', function() {
+      let tags = document.querySelectorAll('.tag');
+      let tagNames = [];
+      for (var i = 0; i < tags.length; i++) {
+        var tag = tags[i];
+        tagNames.push(tag.innerText);
+      }
+      let image = new_file_selected ? imageElement.src : null;
+
+      fetch('/cards/save/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken,  // Ensure you have CSRF token set properly
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            card_id: card_id,
+            title: 'title',
+            description: 'description',
+            tags: tagNames,
+            image: image,
+          })
+      })
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.error(error));
+  });
+</script>
+
+<script>
+  $( function() {
+    function displayTags() {
+      $('#selected-tags').empty();
+      currentTags.forEach(function(tag) {
+        var tagElement = $('<p>' + tag + '</p>');
+        tagElement.addClass('tag');
+        tagElement.on('click', function() {
+          var index = currentTags.indexOf(tag);
+          if (index > -1) {
+            currentTags.splice(index, 1);
+          }
+          displayTags();
+        });
+        $('#selected-tags').append(tagElement);
+      });
+    }
+
+    displayTags();
+
+    $( "#tags" ).autocomplete({
+      source: function(request, response) {
+        var term = request.term.toLowerCase();
+        var matchedTags = allTags.filter(function(tag) {
+          return tag.toLowerCase().startsWith(term) && !currentTags.includes(tag);
+        });
+        response(matchedTags);
+      },
+      select: function(event, ui) {
+        if(!currentTags.includes(ui.item.value)){
+          currentTags.push(ui.item.value);  // Add the selected tag to the currentTags array
+          displayTags();  // Re-draw the tags
+        } else {
+          alert("Tag is already added.");
+        }
+        $(this).val('');  // Clear the input field
+        return false;  // Prevent the widget from inserting the value into the input
+      }
+    });
+  });
+</script>
+</html>
