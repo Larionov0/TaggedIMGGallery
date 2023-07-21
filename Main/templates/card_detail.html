@@ -12,7 +12,7 @@
   <div class="card-detail">
     <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
     <!-- The input field is hidden, but it's triggered when the image is clicked -->
-    <input type="file" id="fileInput" style="display: none;" accept="image/*"/>
+    <input type="file" id="fileInput" accept="image/*"/>
 
     <p class="title">{{ card.title }}</p>
     <div>
@@ -27,27 +27,21 @@
 
 </body>
 
-<script>
+<script>  // global variables
   var card_id = {{ card.id }};
   var csrftoken = '{{ csrf_token }}';
   var allTags = {{ all_tags|safe }};
   var currentTags = {{ tags|safe }};
+  var new_file_selected = false;
+  var fileInput = document.getElementById('fileInput');
 </script>
 
-<script>
+<script>  // image upload
     var imageElement = document.getElementById('clickableImage');
-    const fileInput = document.getElementById('fileInput');
-
-    // var selectedFile;
-    var new_file_selected = false;
-
-    // When the image is clicked, trigger the file input click event
-    imageElement.addEventListener('click', () => {
-        fileInput.click();
-    });
 
     // When a file is selected, read it and update the image
     fileInput.addEventListener('change', (event) => {
+        console.log('File selected');
         let selectedFile = event.target.files[0];
 
         if (selectedFile) {
@@ -62,9 +56,10 @@
         }
     });
 </script>
-<script>
+<script>  // save button
   let saveButton = document.querySelector('input[type="button"]');
-  saveButton.addEventListener('click', function() {
+
+  function save() {
       let tags = document.querySelectorAll('.tag');
       let tagNames = [];
       for (var i = 0; i < tags.length; i++) {
@@ -89,12 +84,14 @@
           })
       })
       .then(response => response.json())
-      .then(data => console.log(data))
+      .then(data => {console.log(data) ; temporaryAlert("Saved", 1000);})
       .catch(error => console.error(error));
-  });
+  }
+
+  saveButton.addEventListener('click', save);
 </script>
 
-<script>
+<script>  // autocomplete
   $( function() {
     function displayTags() {
       $('#selected-tags').empty();
@@ -134,5 +131,41 @@
       }
     });
   });
+</script>
+
+<script>
+  document.addEventListener("keydown", function(event) {
+  // keyCode 83 відповідає клавіші 'S'
+  if(event.ctrlKey) {
+      if (event.keyCode === 83){  // 'S'
+        event.preventDefault();
+        save();
+      } 
+      else if (event.keyCode === 27){  // 'Esc'
+        event.preventDefault();
+        window.location.href = "/cards/";
+      }
+  }
+  else if (! event.ctrlKey && ! event.shiftKey){  
+    var inputField = document.getElementById("tags");
+    inputField.focus();
+  } else if (event.keyCode === 73 && event.shiftKey){  // I  // works for Firefox
+    event.preventDefault();
+    fileInput.focus()
+    fileInput.click();
+  }  
+});
+</script>
+
+<script>  // help functions
+  function temporaryAlert(msg, duration) {
+      var el = document.createElement("div");
+      el.setAttribute("style", "position:absolute;top:2%;left:40%;background-color:white; opacity:0.8; font-size: 20px;");
+      el.innerHTML = msg;
+      setTimeout(function(){
+          el.parentNode.removeChild(el);
+      }, duration);
+      document.body.appendChild(el);
+  }
 </script>
 </html>

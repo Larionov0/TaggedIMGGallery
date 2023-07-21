@@ -27,7 +27,7 @@ def save_card(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         card_id = data.get('card_id', None)
-        title = data.get('title', None)
+        title = data.get('title', 'base')
         description = data.get('description', None)
         tags = data.get('tags', None)
         image_data = data.get('image', None)
@@ -56,6 +56,7 @@ def save_card(request):
 
         tags = [tag.strip() for tag in tags]
         tags = Tag.objects.filter(name__in=tags)
+        card.tags.clear()
         card.add_tags_and_parents(tags)
 
         logging.info(f'card_id: {card_id}; title: {title}; description: {description}; tags: {tags}; image: {card.image.url}')
