@@ -137,7 +137,9 @@ def card_list(request):
     # Filter cards by tags if tags are provided
     if tags:
         tags = tags.split(',')
-        cards = cards.filter(tags__name__in=tags)
+        tags = [tag.strip() for tag in tags if tag.strip()]
+        for tag in tags:
+            cards = cards.filter(tags__name=tag)
 
     # Create paginator
     paginator = Paginator(cards, cards_amount)
@@ -146,4 +148,4 @@ def card_list(request):
     # Page numbers range
     page_range = list(paginator.page_range)[max(0, cards.number - 3):min(cards.paginator.num_pages, cards.number + 2)]
 
-    return render(request, 'card_list.html', {'cards': cards, 'page_range': page_range})
+    return render(request, 'card_list.html', {'cards': cards, 'page_range': page_range, 'all_tags': [tag.name for tag in Tag.objects.all()], 'tags_string': ','.join(tags) if tags else ''})

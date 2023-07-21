@@ -3,12 +3,15 @@
 <head>
   <title>Card List</title>
   {% load static %}
-
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <link rel="stylesheet" type="text/css" href="{% static 'CSS/styles.css' %}">
 </head>
 <body>
   <h1>Cards</h1>
   <a href="/cards/create/" id="create_card_a"><button>Create Card</button></a>
+  <input type="text" id="tags" placeholder="Search by tags" value="{{ tags_string }}">
   <div class="cards">
     {% for card in cards %}
     <div class="card">
@@ -123,10 +126,76 @@
 <script>
   // CTRL + N
   document.addEventListener('keydown', function(event) {
-    if (event.key === 'n') {
+    if (event.ctrlKey && event.key === 'c') {
       event.preventDefault();
       window.location.href = '/cards/create/';
     }
+
+
+    if (event.key.length == 1){
+      document.getElementById('tags').focus(); 
+    }
   });
+</script>
+
+<script>
+  var availableTags = {{ all_tags|safe }};
+</script>
+
+<script>
+  $(function() {
+      function split(val) {
+          return val.split(/,\s*/);
+      }
+
+      function extractLast(term) {
+          return split(term).pop();
+      }
+
+      $("#tags")
+          // Не відкривайте випадаючий список автоматично
+          .on("keydown", function(event) {
+              if (event.keyCode === $.ui.keyCode.TAB &&
+                  $(this).autocomplete("instance").menu.active) {
+                  event.preventDefault();
+              }
+          })
+          .autocomplete({
+              minLength: 0,
+              source: function(request, response) {
+                  // Представте відповідь лише для останнього тегу
+                  response($.ui.autocomplete.filter(
+                      availableTags, extractLast(request.term)));
+              },
+              focus: function() {
+                  // Запобігає вставці значення підказки після вибору
+                  return false;
+              },
+              select: function(event, ui) {
+                  var terms = split(this.value);
+                  // Видаляємо поточний термін введення
+                  terms.pop();
+                  // Додаємо вибраний елемент
+                  terms.push(ui.item.value);
+                  // Додаємо заповнювач для наступного введення
+                  terms.push("");
+                  this.value = terms.join(", ");
+                  return false;
+              }
+          });
+  });
+</script>
+<script>
+  $("#tags").on('keydown', function(event) {
+    if (event.key === 'Enter') {
+      if (!event.ctrlKey) {
+        return
+      }
+
+      event.preventDefault();
+      var tags = $("#tags").val();
+      window.location.href = '/cards/?tags=' + tags;
+    }
+  })
 </script>
 </html>
