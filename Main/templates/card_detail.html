@@ -182,12 +182,7 @@
       if (event.keyCode === 83){  // 'S'
         event.preventDefault();
         save();
-      } 
-      else if (event.keyCode === 27){  // 'Esc'
-        event.preventDefault();
-        window.location.href = "/cards/";
-      } 
-      // next line is CTRL + Delete
+      }
       else if (event.keyCode === 46){  // 'Delete'
         event.preventDefault();
 
@@ -210,7 +205,11 @@
       }).catch(error => temporaryAlert(error, 4000));
       }
   }
-  else if (! event.ctrlKey && ! event.shiftKey){  
+  else if (! event.ctrlKey && ! event.shiftKey){
+    if (event.keyCode === 27){  // 'Esc'
+          event.preventDefault();
+          window.location.href = "/cards/";
+        }
     if (activeCanvas === null){
       var inputField = document.getElementById("tags");
       inputField.focus();
@@ -231,7 +230,7 @@
     event.preventDefault();
     fileInput.focus()
     fileInput.click();
-  }  
+  }
 });
 </script>
 
