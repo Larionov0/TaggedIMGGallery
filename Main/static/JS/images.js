@@ -167,8 +167,8 @@ function onImageLoad() {
         return;
     }
     stopDrag(img);
+    drawImageParts();
     var rect = {}; // ми визначимо цей об'єкт під час mousedown
-
 
     document.addEventListener('mousedown', function(e) {
         let imgRect = img.getBoundingClientRect();
@@ -218,4 +218,5 @@ function onImageLoad() {
     });
 }
 
-
+function onVideoLoad() {
+}

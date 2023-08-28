@@ -16,13 +16,6 @@
     <div id="image_and_parts_div">
       <div id="image_div">
         <div id="content_div">
-          {% if card.image %}
-            <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
-          {% elif card.video %}
-            <video src="{{ card.video.url }}" controls></video>
-          {% else %}
-            <p>No image</p>
-          {% endif %}
         </div>
       </div>
       <div id="image_parts_div">
@@ -95,27 +88,8 @@
             let fileType = selectedFile.type;
 
             reader.onload = (event) => {
-                // Очистимо contentDiv перед додаванням нового вмісту
-                contentDiv.innerHTML = '';
-
-                if (fileType.startsWith('image/')) {
-                    card_type = 'image'
-                    let imageElement = document.createElement('img');
-                    imageElement.id = 'clickableImage';
-                    imageElement.src = event.target.result;
-                    contentDiv.appendChild(imageElement);
-                    onImageLoad()
-                } else if (fileType.startsWith('video/')) {
-                    card_type = 'video'
-                    let videoElement = document.createElement('video');
-                    videoElement.src = event.target.result;
-                    videoElement.controls = true;  // Додаємо елементи управління відео
-                    // videoElement.autoplay = true;  // Автоматичне відтворення
-                    // videoElement.loop = true;  // Повторення відео
-                    contentDiv.appendChild(videoElement);
-                } else {
-                    console.log('Unsupported file type');
-                }
+                card_type = fileType.startsWith('image/') ? 'image' : 'video'
+                fill_content(card_type, event.target.result)
             };
 
             reader.readAsDataURL(selectedFile);
@@ -303,11 +277,30 @@
   }
 </script>
 
+<script>
+  function fill_content(card_type, content_url) {
+    contentDiv.innerHTML = '';
+    if (card_type === 'image') {
+      let imageElement = document.createElement('img');
+      imageElement.id = 'clickableImage';
+      imageElement.src = content_url;
+      contentDiv.appendChild(imageElement);
+      onImageLoad()
 
-<script>  // image parts
-  drawImageParts()
-  create_canvas_animation('canvas1', 15, 200, canvas1_position.x_pct, canvas1_position.y_px)
-  create_canvas_animation('canvas2', 0, 100, canvas2_position.x_pct, canvas2_position.y_px)
-  create_canvas_animation('canvas3', 10, 150, canvas3_position.x_pct, canvas3_position.y_px)
+      create_canvas_animation('canvas1', 15, 200, canvas1_position.x_pct, canvas1_position.y_px)
+      create_canvas_animation('canvas2', 0, 100, canvas2_position.x_pct, canvas2_position.y_px)
+      create_canvas_animation('canvas3', 10, 150, canvas3_position.x_pct, canvas3_position.y_px)
+    } else if (card_type === 'video') {
+      let videoElement = document.createElement('video');
+      videoElement.src = content_url;
+      videoElement.controls = true;  // Додаємо елементи управління відео
+      contentDiv.appendChild(videoElement);
+      onVideoLoad()
+    } else {
+      temporaryAlert('Unsupported file type', 1000);
+    }
+  }
+
+  fill_content(card_type, '{{ card.content_url }}')
 </script>
 </html>

@@ -52,6 +52,10 @@ class Card(models.Model):
         return self.title
     
     @property
+    def content_url(self):
+        return self.image.url if self.type == 1 else self.video.url
+    
+    @property
     def type_name(self):
         return self.TYPE_CHOICES[self.type - 1][1]
 

@@ -20,7 +20,7 @@ def card_detail(request, card_id):
                       'card': card,
                       'tags': [tag.name for tag in card.tags.all()],
                       'all_tags': [tag.name for tag in Tag.objects.all()],
-                      'image_parts': [part.to_dict() for part in card.imagepart_set.all()],
+                      'image_parts': [part.to_dict() for part in card.imagepart_set.all()]
                   })
 
 
