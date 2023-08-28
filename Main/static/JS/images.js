@@ -178,7 +178,7 @@ function drawImageParts(){
         console.log('click')
         })
         // popup text
-        canvas.title = imagePart.tags.join(', ')
+//        canvas.title = imagePart.tags.join(', ')
 
         console.log(`Adding event listeners to canvas ${i}`);
 
@@ -189,10 +189,10 @@ function drawImageParts(){
                 activeCanvasNumber = i;
     
                 canvas.style.zIndex = 1;
-    
-                console.log(`Drawing canvas ${i}`);
+
+                temporaryAlert(imagePart.tags.join(', '), 1000)
             
-                drawImagePart(img, imagePart, 'canvas' + i, maxWidth * 1.5, maxHeight * 1.5);
+                drawImagePart(img, imagePart, 'canvas' + i, maxWidth * 1.8, maxHeight * 1.8);
             });
 
             canvas.addEventListener('mouseout', function() {

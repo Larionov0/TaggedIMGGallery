@@ -219,14 +219,17 @@
     } else {
       if (event.key.length > 1 && event.key!='Backspace') return;  // ignore special keys (like arrows)
 
+      let tags = imageParts[activeCanvasNumber-1].tags.join(',')
+      console.log(tags)
       if (event.key == 'Backspace'){
-        activeCanvas.title = activeCanvas.title.slice(0, -1);
+        tags = tags.slice(0, -1);
       } else {
-        activeCanvas.title = activeCanvas.title + event.key;
+        let key = event.key
+        tags = tags + (key=='-' ? '_' : key);
       }
 
-      imageParts[activeCanvasNumber-1].tags = activeCanvas.title.split(', ');
-      temporaryAlert(activeCanvas.title, 100);
+      imageParts[activeCanvasNumber-1].tags = tags.split(',');
+      temporaryAlert(tags, 100);
     }
     
   } else if (event.keyCode === 73 && event.shiftKey){  // I  // works for Firefox

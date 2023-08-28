@@ -12,7 +12,7 @@ class TagType(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=1000, blank=True)
-    parents = models.ManyToManyField('self', blank=True)
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, blank=True, null=True)
     tag_type = models.ForeignKey(TagType, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -22,9 +22,12 @@ class Tag(models.Model):
         """
         Gets all parent tags of this tag recursively.
         """
-        parents = set(self.parents.all())
-        for parent in self.parents.all():
-            parents.update(parent.get_all_parents())
+        parents = set()
+
+        parent = self.parent
+        while parent:
+            parents.add(parent)
+            parent = parent.parent
 
         return parents
 
