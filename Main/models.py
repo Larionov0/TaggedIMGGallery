@@ -42,7 +42,12 @@ class Card(models.Model):
     image = models.ImageField(upload_to='images/', blank=True)
     video = models.FileField(upload_to='videos/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    TYPE_CHOICES = (
+        (1, 'image'),
+        (2, 'video'),
+    )
+    type = models.IntegerField(choices=TYPE_CHOICES, default=1)
+    
     def __str__(self):
         return self.title
 
