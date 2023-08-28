@@ -69,15 +69,11 @@
 </script>
 
 <script>  // image upload
-    // var fileInput = document.getElementById('fileInput');
-    // var imageElement = document.getElementById('clickableImage');
+    var contentDiv = document.getElementById('content_div');
+    var fileInput = document.getElementById('fileInput');
 
-    var contentDiv = document.getElementById('content_div'); // Ваш div, де буде зображення або відео
-    var fileInput = document.getElementById('fileInput'); // Ваш інпут для файлів
-
-    // Подія, яка відбувається при виборі файлу
-    fileInput.addEventListener('change', (event) => {
-        console.log('File selected');
+    function onFileUpload(event){
+      console.log('File selected');
         let selectedFile = event.target.files[0];
 
         if (selectedFile) {
@@ -94,7 +90,28 @@
 
             reader.readAsDataURL(selectedFile);
         }
+    }
+
+    contentDiv.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
     });
+
+    contentDiv.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Отримуємо перетягнуті файли
+        const files = e.dataTransfer.files;
+
+        if (files.length > 0) {
+            fileInput.files = files;
+            onFileUpload({target: fileInput});
+        }
+    });
+
+    // Подія, яка відбувається при виборі файлу
+    fileInput.addEventListener('change', onFileUpload);
 </script>
 
 
