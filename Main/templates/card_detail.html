@@ -15,7 +15,15 @@
   <div class="card-detail">
     <div id="image_and_parts_div">
       <div id="image_div">
-        <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
+        <div id="content_div">
+          {% if card.image %}
+            <img id="clickableImage" src="{{ card.image.url }}" alt="{{ card.title }}"/>
+          {% elif card.video %}
+            <video src="{{ card.video.url }}" controls></video>
+          {% else %}
+            <p>No image</p>
+          {% endif %}
+        </div>
       </div>
       <div id="image_parts_div">
         <div class="image_part_place">
@@ -53,7 +61,6 @@
   var currentTags = {{ tags|safe }};
   var imageParts = {{ image_parts|safe }};  // [{start_x:..,start_y:..,width:..,height:..,tags:[...]}, ...]
   var new_file_selected = false;
-  var fileInput = document.getElementById('fileInput');
 
   var activeCanvas = null;
   var activeCanvasNumber = null;
@@ -62,14 +69,20 @@
   var canvas2_position = {x_pct: 60, y_px: 240};
   var canvas3_position = {x_pct: 60, y_px: 480};
 
+  var card_type = '{{ card.type_name }}';
+
   // config
   var imagePartsMode = true
 </script>
 
 <script>  // image upload
-    var imageElement = document.getElementById('clickableImage');
+    // var fileInput = document.getElementById('fileInput');
+    // var imageElement = document.getElementById('clickableImage');
 
-    // When a file is selected, read it and update the image
+    var contentDiv = document.getElementById('content_div'); // Ваш div, де буде зображення або відео
+    var fileInput = document.getElementById('fileInput'); // Ваш інпут для файлів
+
+    // Подія, яка відбувається при виборі файлу
     fileInput.addEventListener('change', (event) => {
         console.log('File selected');
         let selectedFile = event.target.files[0];
@@ -77,54 +90,88 @@
         if (selectedFile) {
             new_file_selected = true;
             const reader = new FileReader();
+            
+            // Визначимо MIME-тип файлу
+            let fileType = selectedFile.type;
 
             reader.onload = (event) => {
-                imageElement.src = event.target.result;
+                // Очистимо contentDiv перед додаванням нового вмісту
+                contentDiv.innerHTML = '';
+
+                if (fileType.startsWith('image/')) {
+                    card_type = 'image'
+                    let imageElement = document.createElement('img');
+                    imageElement.id = 'clickableImage';
+                    imageElement.src = event.target.result;
+                    contentDiv.appendChild(imageElement);
+                    onImageLoad()
+                } else if (fileType.startsWith('video/')) {
+                    card_type = 'video'
+                    let videoElement = document.createElement('video');
+                    videoElement.src = event.target.result;
+                    videoElement.controls = true;  // Додаємо елементи управління відео
+                    // videoElement.autoplay = true;  // Автоматичне відтворення
+                    // videoElement.loop = true;  // Повторення відео
+                    contentDiv.appendChild(videoElement);
+                } else {
+                    console.log('Unsupported file type');
+                }
             };
 
             reader.readAsDataURL(selectedFile);
         }
     });
 </script>
+
+
 <script>  // save button
   let saveButton = document.getElementById('saveButton');
   let saveAndGoNextButton = document.getElementById('saveAndGoNextButton');
 
   function save(callback=()=>{}) {
-      let tags = document.querySelectorAll('.tag');
-      let tagNames = [];
-      for (var i = 0; i < tags.length; i++) {
-        var tag = tags[i];
-        tagNames.push(tag.innerText);
-      }
-      let image = new_file_selected ? imageElement.src : null;
+    let tags = document.querySelectorAll('.tag');
+    let tagNames = [];
+    for (var i = 0; i < tags.length; i++) {
+      var tag = tags[i];
+      tagNames.push(tag.innerText);
+    }
 
-      fetch('/cards/save/', {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': csrftoken,  // Ensure you have CSRF token set properly
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            card_id: card_id,
-            title: 'title',
-            description: 'description',
-            tags: tagNames,
-            image: image,
-            image_parts: imageParts
-          })
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data) ; 
-        temporaryAlert(data["message"], 1000);
-        if (data['saved']){
-          card_id = data['card_id'];
-          callback()
-        }
+    let content = null;
+    if (card_type === 'image') {
+        let imageElement = document.getElementById('clickableImage');
+        content = new_file_selected ? imageElement.src : null;
+    } else if (card_type === 'video') {
+        let videoElement = document.querySelector('video');
+        content = new_file_selected ? videoElement.src : null;
+    }
+
+    fetch('/cards/save/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          card_id: card_id,
+          title: 'title',
+          description: 'description',
+          tags: tagNames,
+          card_type: card_type,
+          content: content,  // Вміст - або зображення, або відео
+          image_parts: imageParts
+        })
     })
-      .catch(error => console.error(error));
+    .then(response => response.json())
+    .then(data => {
+      console.log(data); 
+      temporaryAlert(data["message"], 1000);
+      if (data['saved']){
+        card_id = data['card_id'];
+        callback();
+      }
+    })
+    .catch(error => console.error(error));
   }
 
   saveButton.addEventListener('click', save);
@@ -241,7 +288,7 @@
 </script>
 
 <script>
-  imageElement.ondragstart = function(e) { return false; e.preventDefault()};
+  onImageLoad()
 </script>
 
 <script>  // help functions

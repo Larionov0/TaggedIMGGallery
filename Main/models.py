@@ -47,9 +47,13 @@ class Card(models.Model):
         (2, 'video'),
     )
     type = models.IntegerField(choices=TYPE_CHOICES, default=1)
-    
+
     def __str__(self):
         return self.title
+    
+    @property
+    def type_name(self):
+        return self.TYPE_CHOICES[self.type - 1][1]
 
     def add_tags_and_parents(self, tags):
         """

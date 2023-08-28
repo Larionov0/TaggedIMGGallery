@@ -21,7 +21,11 @@
     {% for card in cards %}
     <div class="card">
         <a href="{% url 'card_detail' card.id %}">
-          <img src="{{ card.image.url }}" alt="{{ card.title }}">
+          {% if card.type_name == 'image' %}
+            <img src="{{ card.image.url }}" alt="{{ card.title }}">
+          {% elif card.type_name == 'video' %}
+            <video src="{{ card.video.url }}" autoplay loop muted></video>
+          {% endif %}
         </a>
       <!-- <p>{{ card.get_all_tags_string }}</p> -->
     </div>

@@ -155,50 +155,67 @@ function drawImageParts(){
     }
 }
 
+function stopDrag(image_element){
+    image_element.ondragstart = function(e) { return false; e.preventDefault()};
+}
 
-var img = document.querySelector('#clickableImage');
-var rect = {}; // ми визначимо цей об'єкт під час mousedown
 
-document.addEventListener('mousedown', function(e) {
-    let imgRect = img.getBoundingClientRect();
-    let scaleX = img.naturalWidth / imgRect.width;
-    let scaleY = img.naturalHeight / imgRect.height;
-    let scale = Math.max(scaleX, scaleY);
-    let displayedWidth = img.naturalWidth / scale;
-    let displayedHeight = img.naturalHeight / scale;
-
-    let offsetLeft = (imgRect.width - displayedWidth) / 2;
-    let offsetTop = (imgRect.height - displayedHeight) / 2;
-
-    rect.start_x = (((e.clientX - imgRect.left - offsetLeft) / displayedWidth) * 100);
-    rect.start_y = (((e.clientY - imgRect.top - offsetTop) / displayedHeight) * 100);
-});
-
-img.addEventListener('mouseup', function(e) {
-    let imgRect = img.getBoundingClientRect();
-    let scaleX = img.naturalWidth / imgRect.width;
-    let scaleY = img.naturalHeight / imgRect.height;
-    let scale = Math.max(scaleX, scaleY);
-    let displayedWidth = img.naturalWidth / scale;
-    let displayedHeight = img.naturalHeight / scale;
-
-    let offsetLeft = (imgRect.width - displayedWidth) / 2;
-    let offsetTop = (imgRect.height - displayedHeight) / 2;
-
-    rect.width = (((e.clientX - imgRect.left - offsetLeft) / displayedWidth) * 100) - rect.start_x;
-    rect.height = (((e.clientY - imgRect.top - offsetTop) / displayedHeight) * 100) - rect.start_y;
-
-    rect.name = "custom";
-
-    // Перевіряємо, чи лежить прямокутник в межах зображення
-    if (rect.start_x >= 0 && rect.start_y >= 0 && rect.start_x + rect.width <= 100 && rect.start_y + rect.height <= 100) {
-        // Додаємо прямокутник до списку
-        imageParts.push({...rect, tags: []}); // створюємо новий об'єкт, щоб не зберігати посилання на оригінальний
-        drawImageParts()
-    } else {
-        console.log('Selected rectangle is out of image bounds');
+function onImageLoad() {
+    var img = document.querySelector('#clickableImage');
+    if (!img){
+        console.log("No image found");
+        return;
     }
-});
+    stopDrag(img);
+    var rect = {}; // ми визначимо цей об'єкт під час mousedown
 
+
+    document.addEventListener('mousedown', function(e) {
+        let imgRect = img.getBoundingClientRect();
+        let scaleX = img.naturalWidth / imgRect.width;
+        let scaleY = img.naturalHeight / imgRect.height;
+        let scale = Math.max(scaleX, scaleY);
+        let displayedWidth = img.naturalWidth / scale;
+        let displayedHeight = img.naturalHeight / scale;
+
+        let offsetLeft = (imgRect.width - displayedWidth) / 2;
+        let offsetTop = (imgRect.height - displayedHeight) / 2;
+
+        rect.start_x = (((e.clientX - imgRect.left - offsetLeft) / displayedWidth) * 100);
+        rect.start_y = (((e.clientY - imgRect.top - offsetTop) / displayedHeight) * 100);
+    });
+
+    img.addEventListener('mouseup', function(e) {
+        let imgRect = img.getBoundingClientRect();
+        let scaleX = img.naturalWidth / imgRect.width;
+        let scaleY = img.naturalHeight / imgRect.height;
+        let scale = Math.max(scaleX, scaleY);
+        let displayedWidth = img.naturalWidth / scale;
+        let displayedHeight = img.naturalHeight / scale;
+
+        let offsetLeft = (imgRect.width - displayedWidth) / 2;
+        let offsetTop = (imgRect.height - displayedHeight) / 2;
+
+        rect.width = (((e.clientX - imgRect.left - offsetLeft) / displayedWidth) * 100) - rect.start_x;
+        rect.height = (((e.clientY - imgRect.top - offsetTop) / displayedHeight) * 100) - rect.start_y;
+
+        // Check rectangle minimum size
+        if (rect.width < 3 || rect.height < 3) {
+            temporaryAlert("Rectangle is too small", 1000);
+            return;
+        }
+
+        rect.name = "custom";
+
+        // Перевіряємо, чи лежить прямокутник в межах зображення
+        if (rect.start_x >= 0 && rect.start_y >= 0 && rect.start_x + rect.width <= 100 && rect.start_y + rect.height <= 100) {
+            // Додаємо прямокутник до списку
+            imageParts.push({...rect, tags: []}); // створюємо новий об'єкт, щоб не зберігати посилання на оригінальний
+            drawImageParts()
+        } else {
+            console.log('Selected rectangle is out of image bounds');
+        }
+    });
+}
 
 

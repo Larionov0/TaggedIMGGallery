@@ -17,7 +17,12 @@ class CardAdmin(admin.ModelAdmin):
     ]
 
     def display_image(self, obj):
-        return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
+        if obj.image:
+            return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
+        elif obj.video:
+            return format_html('<video width="50" height="50" controls><source src="{}" type="video/mp4"></video>', obj.video.url)
+        else:
+            return 'No image or video'
     display_image.short_description = 'Img'
 
 
